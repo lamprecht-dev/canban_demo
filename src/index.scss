@@ -1,0 +1,43 @@
+@import './variables.scss';
+
+html, body, #root{
+	width: 100%;
+}
+
+body{
+	background-color: $bg-color;
+	color: $white;
+	// font-family: "Roboto Slab";
+	// font-family: "Roboto Mono";
+	// font-family: "Noto Sans";
+	// font-family: "Noto Sans Mono";
+	// font-family: "Source Sans Pro";
+	font-family: Poppins;
+	overflow: hidden;
+}
+
+// SCROLLBAR 
+ ::-webkit-scrollbar {
+	width: 8px;
+  }
+  
+  .wrapper::-webkit-scrollbar-track-piece:end {
+    background: transparent;
+    margin-bottom: 10px; 
+}
+
+.wrapper::-webkit-scrollbar-track-piece:start {
+    background: transparent;
+    margin-top: 10px;
+}
+
+  ::-webkit-scrollbar-thumb {
+	background: $white;
+    border-right: none;
+    border-left: none;
+	border-radius: 0 20px 20px 0;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+	background: #fff;
+  } 

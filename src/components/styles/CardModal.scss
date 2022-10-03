@@ -1,0 +1,113 @@
+@import "../../variables.scss";
+
+.modal{ 
+    transform:scale(0);
+    &.modal_active{
+        transform:scale(1);
+        background-color: rgba(0,0,0,0.4);
+
+        .modal_card {
+            animation: blowUpModal .5s cubic-bezier(0.165, 0.840, 0.440, 1.000) forwards;
+        }
+    }
+
+    &.modal_out {
+        animation: blowUpModalTwo .5s cubic-bezier(0.165, 0.840, 0.440, 1.000) forwards;
+    }
+
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1; 
+
+    .modal_background{
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+    }
+
+    .modal_card{
+        z-index: 2;
+        background-color: $bg-color;
+        margin: 10% auto;
+        width: 50%;
+        border: 0.5px solid $white;
+        border-radius: 3px;
+        padding: 30px 40px;
+        max-height: 350px;
+        overflow: auto;
+        box-shadow: 0px 10px 15px rgba(0,0,0,0.15);
+
+        .title{
+            font-size: 1.4em;
+            font-weight: 500;
+        }
+
+        .description{
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: 300;
+        }
+    }
+}
+
+.canban_board{
+    &.modal_active{
+        z-index: 1;
+        animation: blowUpContent .5s cubic-bezier(0.165, 0.840, 0.440, 1.000) forwards;
+    }
+    &.modal_out {
+        animation: blowUpContentTwo .5s cubic-bezier(0.165, 0.840, 0.440, 1.000) forwards;
+    }
+}
+
+
+
+  @keyframes blowUpContent {
+    0% {
+      transform:scale(1);
+      opacity:1;
+    }
+    99.9% {
+      transform:scale(2);
+      opacity:0;
+    }
+    100% {
+      transform:scale(0);
+    }
+  }
+  
+  @keyframes blowUpContentTwo {
+    0% {
+      transform:scale(2);
+      opacity:0;
+    }
+    100% {
+      transform:scale(1);
+      opacity:1;
+    }
+  }
+  
+  @keyframes blowUpModal {
+    0% {
+      transform:scale(0);
+    }
+    100% {
+      transform:scale(1);
+    }
+  }
+  
+  @keyframes blowUpModalTwo {
+    0% {
+      transform:scale(1);
+      opacity:1;
+    }
+    100% {
+      transform:scale(0);
+      opacity:0;
+    }
+  }
