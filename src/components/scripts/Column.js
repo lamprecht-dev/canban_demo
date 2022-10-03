@@ -9,6 +9,8 @@ class Column extends React.Component {
             <div className="cards">{
                 this.props.tasks.map((task, id) => <Card key={task.id} data={task} 
                 on_mouse_down={this.props.on_mouse_down} 
+                on_mouse_move={()=>{}}
+                on_mouse_up={()=>{}}
                 />)
             }</div>
         </div>)

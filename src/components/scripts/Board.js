@@ -24,6 +24,7 @@ class Board extends React.Component {
 			last_modal_data: null,
 			mouse_state: null,
 			mouse_down_pos: {x: -1, y: -1},
+			ghost_ref: React.createRef(),
 		};
 	}
 
@@ -117,17 +118,34 @@ class Board extends React.Component {
 	handle_mouse_down(task){
 		let e = window.event;
 		let mousePos = new Vector2(e.pageX, e.pageY);
-		this.setState({mouse_state: {action: "down", data: task, mouse_down_pos: mousePos}});
+
+		let rect = task.ref.current.getBoundingClientRect();
+		let rel_positon = new Vector2(mousePos.x - rect.left, mousePos.y - rect.top);
+
+		this.setState({mouse_state: {action: "down", data: task, mouse_down_pos: mousePos, current_mouse_pos: mousePos, rel_start_pos: rel_positon}});
 		
 	}
 
 	handle_mouse_move(event){
 		if(this.state.mouse_state != null && (this.state.mouse_state.action === "down" || this.state.mouse_state.action === "move")){
-			// let mousePos = new Vector2(event.pageX, event.pageY);
-			let new_mouse_state = Util.copy_obj(this.state.mouse_state);
-			new_mouse_state.action = "move";
+			if(this.state.mouse_state.action === "down"){
+				let new_mouse_state = Util.copy_obj(this.state.mouse_state);
+				new_mouse_state.action = "move";
 
-			this.setState({mouse_state: new_mouse_state});
+				this.setState({mouse_state: new_mouse_state});
+			}
+
+			let mousePos = new Vector2(event.pageX, event.pageY);
+			let altPos = mousePos.substract(this.state.mouse_state.rel_start_pos);
+			if(this.state.ghost_ref.current != null){
+				this.state.ghost_ref.current.style.top = altPos.y + 'px';
+				this.state.ghost_ref.current.style.left = altPos.x + 'px';
+			}
+
+			//TODO: MOVE OBJECT
+
+			// new_mouse_state.action = "move";
+			// new_mouse_state.current_mouse_pos = mousePos;
 		}
 	}
 
@@ -137,7 +155,6 @@ class Board extends React.Component {
 		}
 		let e = window.event;
 		let mousePos = new Vector2(e.pageX, e.pageY);
-		console.log(this.state.mouse_state);
 		let mag = mousePos.magnitude(this.state.mouse_state.mouse_down_pos);
 
 		if(this.state.mouse_state.action === "down" && mag < 20){
@@ -172,9 +189,18 @@ class Board extends React.Component {
 				/>);
 		}
 
-		if(this.state.mouse_state != null){
+		if(this.state.mouse_state != null && this.state.mouse_state.action === "move"){
 			let ghost_task = this.state.mouse_state.data;
-			GhostCard = <Card key={ghost_task.id} data={ghost_task} />
+			GhostCard = <Card key={ghost_task.id} data={ghost_task} on_mouse_down={()=>{}} 
+			args={{
+				type: "ghost", 
+				pos: this.state.mouse_state.current_mouse_pos, 
+				rel_pos: this.state.mouse_state.rel_start_pos,
+				ref: this.state.ghost_ref
+			}}
+			on_mouse_move={this.handle_mouse_move.bind(this)}
+			on_mouse_up={this.handle_mouse_up.bind(this)}
+			/>
 		}
 
 		return (
@@ -186,7 +212,7 @@ class Board extends React.Component {
 					{ColumnsDisplay}				
 				</div>
 				<CardModal data={modal_task} last_data={this.state.last_modal_data} modal_class={this.state.modal_class} onClick={this.modal_exit.bind(this)}/>
-				{/* {GhostCard} */}
+				{GhostCard}
 			</div>
 		)
 	}
