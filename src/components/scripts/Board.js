@@ -8,7 +8,6 @@ import Task from "../../classes/Task";
 import Util from "../../classes/Util";
 import Vector2 from "../../classes/Vector2";
 
-
 class Board extends React.Component {
 	constructor(props) {
 		super(props);
@@ -19,12 +18,18 @@ class Board extends React.Component {
 				"in_progress": null,
 				"finished": null,
 			},
+			col_refs: {
+				"not_started": React.createRef(), 
+				"in_progress": React.createRef(),
+				"finished": React.createRef(),
+			},
 			task_key: 0,
 			modal_class: "",
 			last_modal_data: null,
 			mouse_state: null,
 			mouse_down_pos: {x: -1, y: -1},
 			ghost_ref: React.createRef(),
+			ghost_spot: {col: null, spot: null},
 		};
 	}
 
@@ -32,10 +37,11 @@ class Board extends React.Component {
 		let columns = Util.copy_obj(this.state.columns);
 		columns = this.add_task("I haven't started yet", "", "not_started", columns, 0);
 		columns = this.add_task("Neither have I", null, "not_started", columns, 1);
-		columns = this.add_task("I am in progress", "Being doing it for a while", "in_progress", columns, 2);
-		columns = this.add_task("I am done", "Yay!", "finished", columns, 3);
-		columns = this.add_task("Me too", "I actually have a lot of text. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam vulputate dui vel scelerisque tempus. Nunc euismod pretium nisl, ac hendrerit augue elementum vel. Proin tincidunt, elit ac blandit semper, lectus ante dignissim ligula, non faucibus erat ipsum quis dui. Aenean ante dolor, hendrerit eu sollicitudin in, volutpat ac nunc. Ut placerat lacinia rhoncus. Fusce sed sem accumsan, rutrum enim vitae, elementum arcu. Vivamus at mattis enim, nec viverra ante. Aliquam porta ullamcorper dolor pulvinar congue. ", "finished", columns, 4);
-		this.setState({columns: columns, task_key: this.state.task_key + 5})
+		columns = this.add_task("", "No title here", "not_started", columns, 2);
+		columns = this.add_task("I am in progress", "Being doing it for a while", "in_progress", columns, 3);
+		columns = this.add_task("I am done", "Yay!", "finished", columns, 4);
+		columns = this.add_task("Me too", "I actually have a lot of text. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam vulputate dui vel scelerisque tempus. Nunc euismod pretium nisl, ac hendrerit augue elementum vel. Proin tincidunt, elit ac blandit semper, lectus ante dignissim ligula, non faucibus erat ipsum quis dui. Aenean ante dolor, hendrerit eu sollicitudin in, volutpat ac nunc. Ut placerat lacinia rhoncus. Fusce sed sem accumsan, rutrum enim vitae, elementum arcu. Vivamus at mattis enim, nec viverra ante. Aliquam porta ullamcorper dolor pulvinar congue. ", "finished", columns, 5);
+		this.setState({columns: columns, task_key: this.state.task_key + 6})
 	}
 
 	add_task(title, description, status, use_columns = null, use_task_key = null) {
@@ -61,6 +67,7 @@ class Board extends React.Component {
 		
 		if(use_columns == null){
 			this.setState({columns: columns, task_key: this.state.task_key + 1});
+			return t;
 		}
 		else{
 			return columns; // IMPORTANT NOW YOU HAVE TO KEEP TRACK OF TASK KEY YOURSELF!
@@ -71,6 +78,9 @@ class Board extends React.Component {
 		let columns = Util.copy_obj(this.state.columns);
 		let save_task = this.state.last_modal_data;
 		for(let col in columns){
+			if(columns[col] == null){
+				continue;
+			}
 			let t = columns[col].modal_id(task.id);
 			if(t != null){
 				save_task = t;
@@ -110,6 +120,7 @@ class Board extends React.Component {
 	modal_exit(){
 		let columns = Util.copy_obj(this.state.columns);
 		for(let col in columns){
+			if(columns[col] == null) continue;
 			columns[col].modal_id(-1);
 		}
 		this.setState({columns: columns, modal_class: "modal_out"});
@@ -126,26 +137,60 @@ class Board extends React.Component {
 		
 	}
 
-	handle_mouse_move(event){
+	handle_mouse_move(){
 		if(this.state.mouse_state != null && (this.state.mouse_state.action === "down" || this.state.mouse_state.action === "move")){
+			let new_state = {};
+			let e = window.event;
+			let mousePos = new Vector2(e.pageX, e.pageY);
+			let mag = mousePos.magnitude(this.state.mouse_state.mouse_down_pos);
+			
+			if(mag < 20){
+				return;
+			}
+
 			if(this.state.mouse_state.action === "down"){
 				let new_mouse_state = Util.copy_obj(this.state.mouse_state);
 				new_mouse_state.action = "move";
 
-				this.setState({mouse_state: new_mouse_state});
+				new_state.mouse_state = new_mouse_state;
 			}
 
-			let mousePos = new Vector2(event.pageX, event.pageY);
+			// Adjust ghost object
 			let altPos = mousePos.substract(this.state.mouse_state.rel_start_pos);
 			if(this.state.ghost_ref.current != null){
-				this.state.ghost_ref.current.style.top = altPos.y + 'px';
-				this.state.ghost_ref.current.style.left = altPos.x + 'px';
+				let ghost_object = this.state.ghost_ref.current;
+				ghost_object.style.top = altPos.y + 'px';
+				ghost_object.style.left = altPos.x + 'px';
 			}
 
-			//TODO: MOVE OBJECT
+			// Calculate possible drop position
+			let columns = Util.copy_obj(this.state.columns);
+			for(let n in columns) {
+				let col_rect = this.state.col_refs[n].current.getBoundingClientRect();
+				let is_in_col = mousePos.x - col_rect.left > 0 && mousePos.x - col_rect.right < 0;
 
-			// new_mouse_state.action = "move";
-			// new_mouse_state.current_mouse_pos = mousePos;
+				if(!is_in_col) {
+					continue;
+				}
+
+				let task = columns[n];
+				let valid_spot = -1;
+				while(task){
+					let rect = task.ref.current.getBoundingClientRect();
+					let middle = rect.top + rect.height / 2;
+					
+					if(mousePos.y - middle < 0){
+						break;
+					}
+
+					valid_spot = task.id;
+
+					task = task.get_next_task();
+				}
+				
+				new_state.ghost_spot = {col: n, spot: valid_spot};
+			}
+			this.setState(new_state);
 		}
 	}
 
@@ -161,31 +206,93 @@ class Board extends React.Component {
 			this.handle_card_click(this.state.mouse_state.data);
 		}
 		else{
-			this.setState({mouse_state: null});
+			this.drop_card();
 		}
+	}
+
+	drop_card(){
+		let col = this.state.ghost_spot.col;
+		let spot = this.state.ghost_spot.spot;
+		let columns = Util.copy_obj(this.state.columns);
+		let task = Util.copy_obj(this.state.mouse_state.data, new Task());
+
+		if(spot === task.id){
+			this.setState({mouse_state: null, ghost_spot: {col: null, spot: null}, columns: columns});
+			return;
+		}
+
+		// Remove from old space
+		for(let c in columns){
+			if(columns[c] == null){
+				continue;
+			}
+			columns[c] = columns[c].remove_id_task(task.id);
+		}
+
+		// Insert into new space
+		if(columns[col] != null){
+			if(spot === -1){
+				task.next_task = columns[col];
+				columns[col] = task;
+			}
+			else{
+				columns[col].insert_task_after_id(task, spot);
+			}
+		}
+		else{
+			columns[col] = task;
+			task.next_task = null;
+		}
+
+		this.setState({mouse_state: null, ghost_spot: {col: null, spot: null}, columns: columns});
+	}
+
+	handle_delete_task(task){
+		for(let col in this.state.columns){
+			if(this.state.columns[col] != null){
+				this.state.columns[col].remove_id_task(task.id);
+			}
+		}
+		this.modal_exit();
+	}
+
+	handle_add_to_column(col){
+		let new_task = this.add_task("", "", col);
+		this.handle_card_click(new_task);
 	}
 
 	render() {
 		let task_by_status = {};
-		let modal_task = null;
 		let ColumnsDisplay = [];
 		let GhostCard = null;
+		let total_cards = 0;
+		
+		for(let col in this.state.columns){
+			if(this.state.columns[col] != null){
+				total_cards += this.state.columns[col].get_sorted_list().length;
+			}
+		}
 
 		for(let col in this.state.columns){
-			if(this.state.columns[col] == null){
-				task_by_status[col] = [];
-				continue;
+			task_by_status[col] = [];
+
+			if(this.state.columns[col] != null){
+				task_by_status[col] = this.state.columns[col].get_sorted_list();
 			}
 
-			task_by_status[col] = this.state.columns[col].get_sorted_list();
-			for(let t in task_by_status[col]){
-				if(t.modal){
-					modal_task = t;
-				}
-			}
+			let ghost_spot = (this.state.ghost_spot.col === col) ? this.state.ghost_spot.spot : null;
 
-			ColumnsDisplay.push(<Column key={col} name={this.state.statuses[col]} tasks={task_by_status[col]} 
-				on_mouse_down={this.handle_mouse_down.bind(this)} 
+			ColumnsDisplay.push(
+				<Column 
+					col_ref={this.state.col_refs[col]} 
+					key={col} 
+					name={this.state.statuses[col]} 
+					colName ={col}
+					tasks={task_by_status[col]} 
+					on_mouse_down={this.handle_mouse_down.bind(this)} 
+					ghost_spot={ghost_spot}
+					addToColumn={this.handle_add_to_column.bind(this)}
+					totalCards={total_cards}
 				/>);
 		}
 
@@ -211,7 +318,13 @@ class Board extends React.Component {
 				>
 					{ColumnsDisplay}				
 				</div>
-				<CardModal data={modal_task} last_data={this.state.last_modal_data} modal_class={this.state.modal_class} onClick={this.modal_exit.bind(this)}/>
+				<CardModal 
+					data={this.state.last_modal_data} 
+					modal_class={this.state.modal_class} 
+					onClick={this.modal_exit.bind(this)} 
+					updateTask={this.update_task.bind(this)} 
+					deleteTask={this.handle_delete_task.bind(this)}
+				/>
 				{GhostCard}
 			</div>
 		)

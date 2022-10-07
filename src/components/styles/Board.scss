@@ -27,15 +27,54 @@
             font-family: "Roboto Mono";
         }
 
-        .cards{
-            .card:hover{
+        .card_divider{
+            border: 0.5px solid transparent;
+            margin: -10px auto;
+            width: 270px;
+            
+            &.first{
+                margin: 10px auto -10px;
+            }
+
+            &.active{
+                border-color: rgba($green-highlight, 1);
+            }
+        }
+
+        .add_to_column{
+            background-color: $bg-color;
+            background: linear-gradient(0deg, $bg-color 60%, $scroll_handle 100%);
+            color: $white;
+            border: none;
+            border-top: 1px solid $white;
+            border-radius: 5px;
+            padding: 6px 12px;
+            margin: 20px auto;
+            font-weight: 400;
+            width: 280px;
+            display: block;
+            transition: border-color 0.2s ease-in-out;
+            font-size: 0.6em;
+
+            &:hover{
+                border-color: $green-highlight;
                 animation: wiggle .1s linear 1;
             }
+        }
+
+        .counter{
+            color: rgba($white, 0.5);
+            font-size: 0.7em;
+            font-weight: 300;
+            text-align: center;
+            margin-top: 4px;
+            margin-bottom: -4px;
         }
     }
 }
 
 .card{
+    white-space: pre-wrap;
     animation: none;
     border: 0.5px solid $white;
     border-radius: 3px;
@@ -43,6 +82,16 @@
     margin: 20px 10px;
     user-select: none;
     box-shadow: 0px 10px 15px rgba(0,0,0,0.15);
+    transition: border-color 0.2s ease-in-out;
+
+    &:hover{
+        border-color: $green-highlight;
+        animation: wiggle .1s linear 1;
+    }
+
+    &:active{
+        background-color: rgba($scroll_handle, 0.5);
+    }
 
     .title{
         font-size: 1.1em;

@@ -42,15 +42,63 @@
         overflow: auto;
         box-shadow: 0px 10px 15px rgba(0,0,0,0.15);
 
+		.modal_delete{
+			i{
+				font-size: 0.8em;
+				color: rgba($white, 0.5);
+				transition: color 0.15s ease-in-out;
+				cursor: pointer;
+
+				&:hover{
+					color: rgba($red-highlight, 0.9);
+				}
+	
+				&:active{
+					color: rgba($red-highlight, 1);
+				}
+			}
+
+			position: relative;
+			right: -10px;
+			top: -10px;
+			text-align: right;
+			margin-bottom: -20px;
+		}
+
         .title{
             font-size: 1.4em;
             font-weight: 500;
+
+            input{
+              background-color: rgba(255, 255, 255, 0.05);
+              color: white;
+              border: rgba($scroll_handle, 0.5) 1px solid;
+              padding: 5px 15px;
+              border-radius: 10px;
+              font-size: 1em;
+            }
         }
 
         .description{
             margin-top: 20px;
             font-size: 1.1em;
             font-weight: 300;
+            white-space: pre-wrap;
+
+            textarea {
+				background-color: rgba(255, 255, 255, 0.05);
+				color: white;
+				border: rgba($scroll_handle, 0.5) 1px solid;
+				padding: 5px 15px;
+				border-radius: 10px;
+				font-size: 0.9em;
+				width: 93%;
+				min-width: 93%;
+				max-width: 93%;
+				height: auto;
+				font-family: inherit;  
+				resize: none;
+            }
         }
     }
 }

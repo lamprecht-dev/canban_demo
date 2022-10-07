@@ -1,7 +1,7 @@
 import React from 'react';
 
 class Task{
-    constructor(id, title, description, next_task = null){
+    constructor(id = null, title = null, description = null, next_task = null){
         this.id = id;
         this.title = title ? title : null;
         this.description = description ? description : null;
@@ -45,6 +45,18 @@ class Task{
         return this.next_task.insert_n_task(task, n - 1);
     }
 
+    insert_task_after_id(task, id){
+        if(this.id == id){
+            task.next_task = this.next_task;
+            this.next_task = task;
+            return true;
+        }
+        if(this.next_task == null){
+            return false;
+        }
+        return this.next_task.insert_task_after_id(task, id);
+    }
+
     append_task(task){
         if(this.next_task == null){
             this.next_task = task;
@@ -85,7 +97,7 @@ class Task{
             return this.next_task;
         }
         if(this.next_task != null){
-            this.next_task = this.next_task.remove_n_task(id);
+            this.next_task = this.next_task.remove_id_task(id);
         }
         
         return this;

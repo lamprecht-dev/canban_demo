@@ -1,12 +1,21 @@
-@import url('https://fonts.googleapis.com/css?family=Roboto+Slab&subset=latin,latin-ext');
-@import url('https://fonts.googleapis.com/css?family=Noto+Sans&subset=latin,latin-ext');
-@import url('https://fonts.googleapis.com/css?family=Roboto+Mono&subset=latin,latin-ext');
-@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro&subset=latin,latin-ext');
-@import url('https://fonts.googleapis.com/css?family=Noto+Sans+Mono&subset=latin,latin-ext');
+@import './includes/fontawesome-free-6.2.0-web/scss/fontawesome';
+@import './includes/fontawesome-free-6.2.0-web/scss/solid';
+@import './includes/fontawesome-free-6.2.0-web/scss/regular';
+
+@mixin font($font-family, $font-file) {
+    @font-face {
+      font-family: $font-family;
+      src: url($font-file+'.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  }
+
+@include font('Roboto Mono', './includes/Roboto_Mono/RobotoMono-VariableFont_wght');
 
 $bg-color: #081928;
 $scroll_handle: #040e16;
 $white: #F8FCFF;
 $red-highlight: #FF7454;
-$blue-highlight: #72A3FF;
-$blue-highlight: #9DFF70; 
+$blue-highlight: #2677c0;
+$green-highlight: #61ffa0; 
