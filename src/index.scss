@@ -15,6 +15,8 @@ body{
 	font-family: Poppins;
 	overflow: auto;
 	overflow-x: hidden;
+	background-image: url("./includes/grit.png");
+	background-blend-mode: multiply;
 }
 
 *:focus{
@@ -46,3 +48,4 @@ body{
   ::-webkit-scrollbar-thumb:hover {
 	background: #fff;
   } 
+  

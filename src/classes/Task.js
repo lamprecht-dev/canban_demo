@@ -46,7 +46,7 @@ class Task{
     }
 
     insert_task_after_id(task, id){
-        if(this.id == id){
+        if(this.id === id){
             task.next_task = this.next_task;
             this.next_task = task;
             return true;

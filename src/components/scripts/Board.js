@@ -7,6 +7,7 @@ import CardModal from './CardModal';
 import Task from "../../classes/Task";
 import Util from "../../classes/Util";
 import Vector2 from "../../classes/Vector2";
+import axios from "axios";
 
 class Board extends React.Component {
 	constructor(props) {
@@ -33,15 +34,32 @@ class Board extends React.Component {
 		};
 	}
 
+	async fetchData() {
+		try {
+			let result = "";
+			if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+				result = await axios.get("./read_db.json");
+			} else {
+				result = await axios.get("./read_db.php");
+			}
+
+			let columns = Util.copy_obj(this.state.columns);
+			for(let row in result.data) {
+				columns = this.add_task(result.data[row].title, result.data[row].description, result.data[row].status, columns, result.data[row].id);
+			}
+			this.setState({columns: columns})
+		} catch (error) {
+		  	console.error(error);
+			return;
+		}
+	}
+	
+	updateData(){
+		//Read Current Columns and send it to the script
+	}
+
 	componentDidMount(){
-		let columns = Util.copy_obj(this.state.columns);
-		columns = this.add_task("I haven't started yet", "", "not_started", columns, 0);
-		columns = this.add_task("Neither have I", null, "not_started", columns, 1);
-		columns = this.add_task("", "No title here", "not_started", columns, 2);
-		columns = this.add_task("I am in progress", "Being doing it for a while", "in_progress", columns, 3);
-		columns = this.add_task("I am done", "Yay!", "finished", columns, 4);
-		columns = this.add_task("Me too", "I actually have a lot of text. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam vulputate dui vel scelerisque tempus. Nunc euismod pretium nisl, ac hendrerit augue elementum vel. Proin tincidunt, elit ac blandit semper, lectus ante dignissim ligula, non faucibus erat ipsum quis dui. Aenean ante dolor, hendrerit eu sollicitudin in, volutpat ac nunc. Ut placerat lacinia rhoncus. Fusce sed sem accumsan, rutrum enim vitae, elementum arcu. Vivamus at mattis enim, nec viverra ante. Aliquam porta ullamcorper dolor pulvinar congue. ", "finished", columns, 5);
-		this.setState({columns: columns, task_key: this.state.task_key + 6})
+		this.fetchData();
 	}
 
 	add_task(title, description, status, use_columns = null, use_task_key = null) {
@@ -114,6 +132,8 @@ class Board extends React.Component {
 	update_task(id, title = null, description = null, status = null, modal = null){
 		let columns = Util.copy_obj(this.state.columns);
 		columns = this.update_task_data(columns, id, title, description, status, modal);
+
+		this.updateData();
 		this.setState({columns: columns});
 	}
 
@@ -123,6 +143,7 @@ class Board extends React.Component {
 			if(columns[col] == null) continue;
 			columns[col].modal_id(-1);
 		}
+		updateData();
 		this.setState({columns: columns, modal_class: "modal_out"});
 	}
 
@@ -244,10 +265,11 @@ class Board extends React.Component {
 			task.next_task = null;
 		}
 
+		this.updateData();
 		this.setState({mouse_state: null, ghost_spot: {col: null, spot: null}, columns: columns});
 	}
 
-	handle_delete_task(task){
+	handle_delete_task(task){ // TODO
 		for(let col in this.state.columns){
 			if(this.state.columns[col] != null){
 				this.state.columns[col].remove_id_task(task.id);
@@ -256,7 +278,7 @@ class Board extends React.Component {
 		this.modal_exit();
 	}
 
-	handle_add_to_column(col){
+	handle_add_to_column(col){ // TODO
 		let new_task = this.add_task("", "", col);
 		this.handle_card_click(new_task);
 	}
