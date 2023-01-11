@@ -2,7 +2,7 @@ import React from 'react';
 
 class Card extends React.Component {
     render(){
-        let title = this.props.data.title ? <div className="title">{this.props.data.title}</div> : null;
+        let title = this.props.data.title ? this.props.data.title : 'Untitled';
         let shortened_desc = null;
         if(this.props.data.description != null){
             let max_length = 200;
@@ -15,8 +15,6 @@ class Card extends React.Component {
         }
 
         let description = shortened_desc ? <div className="description">{shortened_desc}</div> : null;
-
-
 
         let card_class = "card";
         let ref = this.props.data.ref;
@@ -35,7 +33,7 @@ class Card extends React.Component {
             onMouseMove={this.props.on_mouse_move}
             onMouseUp={this.props.on_mouse_up}
             >
-                {title}
+                <div className="title">{title}</div>
                 {description}
             </div>
         );

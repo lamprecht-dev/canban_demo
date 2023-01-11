@@ -28,6 +28,13 @@ class Task{
         return this.next_task.get_task(n - 1);
     }
 
+    get_tail(){
+        if(this.next_task == null){
+            return this;
+        }
+        return this.next_task.get_tail();
+    }
+
     // Similar to set_next_task, but here we add this one and push all the others behind it
     insert_next_task(task){
         task.next_task = this.next_task;

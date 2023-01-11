@@ -11,6 +11,8 @@ class CardModal extends React.Component {
             title_ref: React.createRef(),
             desc_ref: React.createRef(),
             desc_height: 100,
+            title: null,
+            description: null,
         }
     }
 
@@ -23,7 +25,7 @@ class CardModal extends React.Component {
     handle_title_edited(){
         let new_text = this.state.title_ref.current.firstChild.value;
         this.props.updateTask(this.props.data.id, new_text, null, null, null);
-        this.setState({edit_title: false});
+        this.setState({edit_title: false, title: new_text});
     }
 
     handle_desc_click(el){
@@ -42,32 +44,34 @@ class CardModal extends React.Component {
     handle_desc_edited(){
         let new_text = this.state.desc_ref.current.firstChild.value;
         this.props.updateTask(this.props.data.id, null, new_text, null, null);
-        this.setState({edit_description: false});
+        this.setState({edit_description: false, description: new_text});
     }
 
-    exit_modal(e){
-        this.setState({edit_title: false, edit_description: false});
-        this.props.onClick(e);
+    exit_modal(){
+        this.setState({edit_title: false, edit_description: false, title: null, description: null});
+        this.props.onClick();
     }
 
 	render() {
         let title = "";
         let description = "";
         let desc_style = {height: this.state.desc_height+"px"};
+        let title_data = this.state.title ?? (this.props.data ? this.props.data.title : null);
+        let description_data = this.state.description ?? (this.props.data ? this.props.data.description: null);
         
         if(this.props.data != null){
             if(this.state.edit_title){
-                title = <input defaultValue={this.props.data.title} onBlur={this.handle_title_edited.bind(this)} />
+                title = <input defaultValue={title_data} onBlur={this.handle_title_edited.bind(this)} />
             }
             else{
-                title = this.props.data.title ? this.props.data.title : <span className="no_title">Add Title</span>;
+                title = title_data ?? <span className="no_title">Add Title</span>;
             }
             
             if(this.state.edit_description){
-                description = <textarea defaultValue={this.props.data.description} onBlur={this.handle_desc_edited.bind(this)} onInput={this.update_desc_height.bind(this)} style={desc_style}/>
+                description = <textarea defaultValue={description_data} onBlur={this.handle_desc_edited.bind(this)} onInput={this.update_desc_height.bind(this)} style={desc_style}/>
             }
             else{
-                description = this.props.data.description ? this.props.data.description : <span className="no_desc">Add Description</span>;
+                description = description_data ?? <span className="no_desc">Add Description</span>;
             }
         }
 

@@ -57,8 +57,7 @@
             font-size: 0.6em;
 
             &:hover{
-                border-color: $green-highlight;
-                animation: wiggle .1s linear 1;
+                @include hover_animation;
             }
         }
 
@@ -76,17 +75,15 @@
 .card{
     white-space: pre-wrap;
     animation: none;
-    border: 0.5px solid $white;
-    border-radius: 3px;
     padding: 16px 16px 18px;
     margin: 20px 10px;
     user-select: none;
     box-shadow: 0px 10px 15px rgba(0,0,0,0.15);
     transition: border-color 0.2s ease-in-out;
+    @include border_styles;
 
     &:hover{
-        border-color: $green-highlight;
-        animation: wiggle .1s linear 1;
+        @include hover_animation;
     }
 
     &:active{

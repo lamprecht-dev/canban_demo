@@ -19,6 +19,11 @@ body{
 	background-blend-mode: multiply;
 }
 
+::selection{
+	background-color: $green-highlight;
+	color: $bg-color;
+}
+
 *:focus{
 	outline: 1px solid $white;
 }

@@ -8,6 +8,7 @@ import Task from "../../classes/Task";
 import Util from "../../classes/Util";
 import Vector2 from "../../classes/Vector2";
 import axios from "axios";
+import ResetDB from "./ResetDB";
 
 class Board extends React.Component {
 	constructor(props) {
@@ -24,7 +25,6 @@ class Board extends React.Component {
 				"in_progress": React.createRef(),
 				"finished": React.createRef(),
 			},
-			task_key: 0,
 			modal_class: "",
 			last_modal_data: null,
 			mouse_state: null,
@@ -43,19 +43,53 @@ class Board extends React.Component {
 				result = await axios.get("./read_db.php");
 			}
 
-			let columns = Util.copy_obj(this.state.columns);
-			for(let row in result.data) {
-				columns = this.add_task(result.data[row].title, result.data[row].description, result.data[row].status, columns, result.data[row].id);
-			}
-			this.setState({columns: columns})
+			this.setResultData(result);
 		} catch (error) {
 		  	console.error(error);
 			return;
 		}
 	}
+
+	setResultData(result, set_state = {}, callback = () => {}){
+		let columns = {
+			"not_started": null, 
+			"in_progress": null,
+			"finished": null,
+		};
+		for(let row in result.data) {
+			columns = this.add_task(result.data[row].title, result.data[row].description, result.data[row].status, columns, result.data[row].id);
+		}
+		set_state.columns = columns;
+		this.setState(set_state, callback);
+	}
 	
-	updateData(){
+	updateData(columns, set_state = {}, callback = () => {}){
+		if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+			return;
+		}
 		//Read Current Columns and send it to the script
+		let update_data = [];
+		for(let col in columns) {
+			if(columns[col] == null){
+				continue;
+			}
+			let sorted_list = columns[col].get_sorted_list();
+			for(let i = 0; i < sorted_list.length; i++){
+				let item = sorted_list[i];
+				update_data.push({id: parseInt(item.id), title: item.title, description: item.description, order: i, status: col});
+			}
+		}
+		
+		axios({ 
+			method: 'post',
+			url: "./update_db.php",
+			data: JSON.stringify(update_data),
+		}).then((response) => {
+			// console.log(response.data);
+			this.setResultData(response, set_state, callback);
+		}).catch((error) => {
+			console.log(error);
+		});
 	}
 
 	componentDidMount(){
@@ -64,7 +98,7 @@ class Board extends React.Component {
 
 	add_task(title, description, status, use_columns = null, use_task_key = null) {
 		let columns;
-		let key = this.state.task_key;
+		let key = -1;
 		if(use_columns == null){
 			columns = Util.copy_obj(this.state.columns);
 		}
@@ -84,7 +118,7 @@ class Board extends React.Component {
 		}
 		
 		if(use_columns == null){
-			this.setState({columns: columns, task_key: this.state.task_key + 1});
+			this.setState({columns: columns});
 			return t;
 		}
 		else{
@@ -104,7 +138,7 @@ class Board extends React.Component {
 				save_task = t;
 			}
 		}
-		this.setState({columns: columns, modal_class: "modal_active", last_modal_data: save_task, mouse_state: null});
+		this.setState({modal_class: "modal_active", last_modal_data: save_task, mouse_state: null});
 	}
 
 	update_task_data(columns, id, title = null, description = null, status = null, modal = null){
@@ -112,7 +146,11 @@ class Board extends React.Component {
 		let t = null;
 
 		// Find in which column task is and update text on spot
+			// console.log(columns);
 		for(let col in columns){
+			if(columns[col] == null){
+				continue;
+			}
 			t = columns[col].find(id);
 			if(t != null){
 				this.task_in_col = col;
@@ -133,18 +171,19 @@ class Board extends React.Component {
 		let columns = Util.copy_obj(this.state.columns);
 		columns = this.update_task_data(columns, id, title, description, status, modal);
 
-		this.updateData();
-		this.setState({columns: columns});
+		this.updateData(columns);
 	}
 
-	modal_exit(){
-		let columns = Util.copy_obj(this.state.columns);
+	modal_exit(columns = null){
+		if(columns == null){	
+			columns = Util.copy_obj(this.state.columns);
+		}
+
 		for(let col in columns){
 			if(columns[col] == null) continue;
-			columns[col].modal_id(-1);
+			columns[col].modal_id(-2);
 		}
-		updateData();
-		this.setState({columns: columns, modal_class: "modal_out"});
+		this.updateData(columns, {modal_class: "modal_out"});
 	}
 
 	handle_mouse_down(task){
@@ -265,22 +304,27 @@ class Board extends React.Component {
 			task.next_task = null;
 		}
 
-		this.updateData();
-		this.setState({mouse_state: null, ghost_spot: {col: null, spot: null}, columns: columns});
+		this.updateData(columns, {mouse_state: null, ghost_spot: {col: null, spot: null}});
 	}
 
-	handle_delete_task(task){ // TODO
-		for(let col in this.state.columns){
-			if(this.state.columns[col] != null){
-				this.state.columns[col].remove_id_task(task.id);
+	handle_delete_task(task){ 
+		let columns = Util.copy_obj(this.state.columns);
+		for(let col in columns){
+			if(columns[col] != null){
+				columns[col] = columns[col].remove_id_task(task.id);
 			}
 		}
-		this.modal_exit();
+		this.modal_exit(columns);
 	}
 
-	handle_add_to_column(col){ // TODO
-		let new_task = this.add_task("", "", col);
-		this.handle_card_click(new_task);
+	handle_add_to_column(col){ 
+		let columns = Util.copy_obj(this.state.columns);
+		columns = this.add_task("", "", col, columns);
+		this.updateData(columns, {}, ()=>{
+			if(this.state.columns[col] != null){
+				this.handle_card_click(this.state.columns[col].get_tail());
+			}
+		});
 	}
 
 	render() {
@@ -348,6 +392,7 @@ class Board extends React.Component {
 					deleteTask={this.handle_delete_task.bind(this)}
 				/>
 				{GhostCard}
+				<ResetDB />
 			</div>
 		)
 	}

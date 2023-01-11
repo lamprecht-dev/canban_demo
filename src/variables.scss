@@ -19,3 +19,13 @@ $white: #F8FCFF;
 $red-highlight: #FF7454;
 $blue-highlight: #2677c0;
 $green-highlight: #61ffa0; 
+
+@mixin hover_animation{
+  border-color: $green-highlight;
+  animation: wiggle .1s linear 1;
+}
+
+@mixin border_styles{
+  border: 0.5px solid $white;
+  border-radius: 3px;
+}

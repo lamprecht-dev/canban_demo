@@ -1,0 +1,22 @@
+@import "../../variables.scss";
+
+.ResetDB{
+    background-color: transparent;
+    color: $white;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-family: Poppins;
+    font-weight: 300;
+    font-size: 0.7em;
+    text-decoration: none;
+    
+    @include border_styles;
+
+
+    &:hover{
+        @include hover_animation;
+    }
+}
