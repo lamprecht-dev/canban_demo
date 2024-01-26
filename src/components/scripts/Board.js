@@ -35,12 +35,11 @@ class Board extends React.Component {
 
 	componentDidMount(){
 		let columns = Util.copy_obj(this.state.columns);
-		columns = this.add_task("I haven't started yet", "", "not_started", columns, 0);
-		columns = this.add_task("Neither have I", null, "not_started", columns, 1);
-		columns = this.add_task("", "No title here", "not_started", columns, 2);
-		columns = this.add_task("I am in progress", "Being doing it for a while", "in_progress", columns, 3);
-		columns = this.add_task("I am done", "Yay!", "finished", columns, 4);
-		columns = this.add_task("Me too", "I actually have a lot of text. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam vulputate dui vel scelerisque tempus. Nunc euismod pretium nisl, ac hendrerit augue elementum vel. Proin tincidunt, elit ac blandit semper, lectus ante dignissim ligula, non faucibus erat ipsum quis dui. Aenean ante dolor, hendrerit eu sollicitudin in, volutpat ac nunc. Ut placerat lacinia rhoncus. Fusce sed sem accumsan, rutrum enim vitae, elementum arcu. Vivamus at mattis enim, nec viverra ante. Aliquam porta ullamcorper dolor pulvinar congue. ", "finished", columns, 5);
+		columns = this.add_task("Create Git Repository", "", "in_progress", columns, 0);
+		columns = this.add_task("Attend Project Briefing", "Conference Room 023 - At 10:30am", "finished", columns, 1);
+		columns = this.add_task("Assign Spring Roles", "", "not_started", columns, 2);
+		columns = this.add_task("Read Client Brief", "Extra details not covered in meeting", "in_progress", columns, 3);
+		columns = this.add_task("Prepare Project Folder", "Use new company folder structure", "not_started", columns, 4);
 		this.setState({columns: columns, task_key: this.state.task_key + 6})
 	}
 
